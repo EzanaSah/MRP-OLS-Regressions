@@ -1,0 +1,212 @@
+# Clear Memory and Import Libraries
+
+rm(list=ls())
+
+library(ggplot2)
+
+# Import Data Set for Low Income (LICO and LIM), 
+
+lowinc_df <- read.table(file="lowincome.csv", header=FALSE, sep=',', skip=9, nrows=20)
+colnames(lowinc_df) <- c("Year",
+                         # Canada 
+                         "cdn.all.lim","cdn.all.lico.aftertax","cdn.all.lico.beforetax",
+                         "cdn.male.lim","cdn.male.lico.aftertax","cdn.male.lico.beforetax",
+                         "cdn.fem.lim","cdn.fem.lico.aftertax","cdn.fem.lico.beforetax",
+                         "cdn.fam.lim","cdn.fam.lico.aftertax","cdn.fam.lico.beforetax",
+                         "cdn.single.lim","cdn.single.lico.aftertax","cdn.single.lico.beforetax",
+                         # Quebec
+                         "qbc.all.lim","qbc.all.lico.aftertax","qbc.all.lico.beforetax",
+                         "qbc.male.lim","qbc.male.lico.aftertax","qbc.male.lico.beforetax",
+                         "qbc.fem.lim","qbc.fem.lico.aftertax","qbc.fem.lico.beforetax",
+                         "qbc.fam.lim","qbc.fam.lico.aftertax","qbc.fam.lico.beforetax",
+                         "qbc.single.lim","qbc.single.lico.aftertax","qbc.single.lico.beforetax",
+                         # Ontario 
+                         "ont.all.lim","ont.all.lico.aftertax","ont.all.lico.beforetax",
+                         "ont.male.lim","ont.male.lico.aftertax","ont.male.lico.beforetax",
+                         "ont.fem.lim","ont.fem.lico.aftertax","ont.fem.lico.beforetax",
+                         "ont.fam.lim","ont.fam.lico.aftertax","ont.fam.lico.beforetax",
+                         "ont.single.lim","ont.single.lico.aftertax","ont.single.lico.beforetax",
+                         # British Columbia
+                         "bc.all.lim","bc.all.lico.aftertax","bc.all.lico.beforetax",
+                         "bc.male.lim","bc.male.lico.aftertax","bc.male.lico.beforetax",
+                         "bc.fem.lim","bc.fem.lico.aftertax","bc.fem.lico.beforetax",
+                         "bc.fam.lim","bc.fam.lico.aftertax","bc.fam.lico.beforetax",
+                         "bc.single.lim","bc.single.lico.aftertax","bc.single.lico.beforetax")
+
+# Import Data Set for Labour Force (Employment Rate), 
+
+lf_df <- read.table(file="labourforce.csv", header=FALSE, sep=',', skip=11, nrows=21)
+colnames(lf_df) <- c("Year",
+                     #Canada
+                     "cdn.lf.15andover","cdn.lf.15to24","cdn.lf.25to54","cdn.lf.55andover",
+                     "cdn.employ.15andover","cdn.employ.15to24", "cdn.employ.25to54", "cdn.employ.55andover",
+                     "cdn.ftemploy.15andover","cdn.ftemploy.15to24", "cdn.ftemploy.25to54", "cdn.ftemploy.55andover",
+                     "cdn.ptemploy.15andover", "cdn.ptemploy.15to24", "cdn.ptemploy.25to54", "cdn.ptemploy.55andover",
+                     "cdn.unemploy.15andover", "cdn.unemploy.15to24","cdn.umemploy.25to54","cdn.unemploy55andover",
+                     # Quebec 
+                     "qbc.lf.15andover","qbc.lf.15to24","qbc.lf.25to54","qbc.lf.55andover",
+                     "qbc.employ.15andover","qbc.employ.15to24", "qbc.employ.25to54", "qbc.employ.55andover",
+                     "qbc.ftemploy.15andover","qbc.ftemploy.15to24", "qbc.ftemploy.25to54", "qbc.ftemploy.55andover",
+                     "qbc.ptemploy.15andover", "qbc.ptemploy.15to24", "qbc.ptemploy.25to54", "qbc.ptemploy.55andover",
+                     "qbc.unemploy.15andover", "qbc.unemploy.15to24","qbc.umemploy.25to54","qbc.unemploy55andover",
+                     # Ontario 
+                     "ont.lf.15andover","ont.lf.15to24","ont.lf.25to54","ont.lf.55andover",
+                     "ont.employ.15andover","ont.employ.15to24", "ont.employ.25to54", "ont.employ.55andover",
+                     "ont.ftemploy.15andover","ont.ftemploy.15to24", "ont.ftemploy.25to54", "ont.ftemploy.55andover",
+                     "ont.ptemploy.15andover", "ont.ptemploy.15to24", "ont.ptemploy.25to54", "ont.ptemploy.55andover",
+                     "ont.unemploy.15andover", "ont.unemploy.15to24","ont.umemploy.25to54","ont.unemploy55andover",
+                     # British Columbia
+                     "bc.lf.15andover","bc.lf.15to24","bc.lf.25to54","bc.lf.55andover",
+                     "bc.employ.15andover","bc.employ.15to24", "bc.employ.25to54", "bc.employ.55andover",
+                     "bc.ftemploy.15andover","bc.ftemploy.15to24", "bc.ftemploy.25to54", "bc.ftemploy.55andover",
+                     "bc.ptemploy.15andover", "bc.ptemploy.15to24", "bc.ptemploy.25to54", "bc.ptemploy.55andover",
+                     "bc.unemploy.15andover", "bc.unemploy.15to24","bc.umemploy.25to54","bc.unemploy55andover")   
+
+# Convert Columns' Data Type from Factor to Numeric/Double
+
+lf_df$cdn.lf.15andover <- as.double(sub(',', '',lf_df$cdn.lf.15andover))
+lf_df$cdn.lf.15to24 <- as.double(sub(',', '',lf_df$cdn.lf.15to24))
+lf_df$cdn.lf.25to54 <- as.double(sub(',', '',lf_df$cdn.lf.25to54))
+lf_df$cdn.lf.55andover <- as.double(sub(',', '',lf_df$cdn.lf.55andover))
+lf_df$cdn.employ.15andover <- as.double(sub(',', '',lf_df$cdn.employ.15andover))
+lf_df$cdn.employ.15to24 <- as.double(sub(',', '',lf_df$cdn.employ.15to24))
+lf_df$cdn.employ.25to54 <- as.double(sub(',', '',lf_df$cdn.employ.25to54))
+lf_df$cdn.employ.55andover <- as.double(sub(',', '',lf_df$cdn.employ.55andover))
+lf_df$cdn.ftemploy.15andover <- as.double(sub(',', '',lf_df$cdn.ftemploy.15andover))
+lf_df$cdn.ftemploy.15to24 <- as.double(sub(',', '',lf_df$cdn.ftemploy.15to24))
+lf_df$cdn.ftemploy.25to54 <- as.double(sub(',', '',lf_df$cdn.ftemploy.25to54))
+lf_df$cdn.ftemploy.55andover <- as.double(sub(',', '',lf_df$cdn.ftemploy.55andover))
+ 
+lf_df$cdn.ptemploy.15andover <- as.double(sub(',', '',lf_df$cdn.ptemploy.15andover))
+lf_df$cdn.ptemploy.15to24 <- as.double(sub(',', '',lf_df$cdn.ptemploy.15to24))
+lf_df$cdn.ptemploy.25to54 <- as.double(sub(',', '',lf_df$cdn.ptemploy.25to54))
+lf_df$cdn.ptemploy.55andover <- as.double(sub(',', '',lf_df$cdn.ptemploy.55andover))
+ 
+lf_df$qbc.lf.15andover <- as.double(sub(',', '',lf_df$qbc.lf.15andover))
+lf_df$qbc.lf.25to54 <- as.double(sub(',', '',lf_df$qbc.lf.25to54))
+lf_df$qbc.employ.15andover <- as.double(sub(',', '',lf_df$qbc.employ.15andover))
+lf_df$qbc.employ.25to54 <- as.double(sub(',', '',lf_df$qbc.employ.25to54))
+lf_df$qbc.ftemploy.15andover <- as.double(sub(',', '',lf_df$qbc.ftemploy.15andover))
+lf_df$qbc.ftemploy.25to54 <- as.double(sub(',', '',lf_df$qbc.ftemploy.25to54))
+
+lf_df$ont.lf.15andover <- as.double(sub(',', '',lf_df$ont.lf.15andover))
+lf_df$ont.lf.15to24 <- as.double(sub(',', '',lf_df$ont.lf.15to24))
+lf_df$ont.lf.25to54 <- as.double(sub(',', '',lf_df$ont.lf.25to54))
+lf_df$ont.lf.55andover <- as.double(sub(',', '',lf_df$ont.lf.55andover))
+lf_df$ont.employ.15andover <- as.double(sub(',', '',lf_df$ont.employ.15andover))
+lf_df$ont.employ.15to24 <- as.double(sub(',', '',lf_df$ont.employ.15to24))
+lf_df$ont.employ.25to54 <- as.double(sub(',', '',lf_df$ont.employ.25to54))
+lf_df$ont.employ.55andover <- as.double(sub(',', '',lf_df$ont.employ.55andover))
+lf_df$ont.ftemploy.15andover <- as.double(sub(',', '',lf_df$ont.ftemploy.15andover))
+lf_df$ont.ftemploy.25to54 <- as.double(sub(',', '',lf_df$ont.ftemploy.25to54))
+lf_df$ont.ftemploy.55andover <- as.double(sub(',', '',lf_df$ont.ftemploy.55andover))
+lf_df$ont.ptemploy.15andover <- as.double(sub(',', '',lf_df$ont.ptemploy.15andover))
+
+lf_df$bc.lf.15andover <- as.double(sub(',', '',lf_df$bc.lf.15andover))
+lf_df$bc.lf.25to54 <- as.double(sub(',', '',lf_df$bc.lf.25to54))
+lf_df$bc.employ.15andover <- as.double(sub(',', '',lf_df$bc.employ.15andover))
+lf_df$bc.employ.25to54 <- as.double(sub(',', '',lf_df$bc.employ.25to54))
+lf_df$bc.ftemploy.15andover <- as.double(sub(',', '',lf_df$bc.ftemploy.15andover))
+lf_df$bc.ftemploy.25to54 <- as.double(sub(',', '',lf_df$bc.ftemploy.25to54))
+
+
+# Import Data Set for Provincial Minimum Wages
+
+minwage <- read.table(file="minimumwage.csv", header=TRUE, sep=',')
+minwage_df <- minwage[1:3]
+minwage_df <- minwage[,c(2,1,3)]
+
+# Change Data Types as for Effective Date & Minimum Wage
+
+minwage_df$Effective.Date <- as.Date(minwage_df$Effective.Date,format="%d-%b-%y")
+minwage_df$Minimum.Wage <- as.double(sub('.', '', minwage_df$Minimum.Wage))
+
+# Split Data Set into Ontario, Quebec and British Columbia
+
+qbc_mw <- minwage_df[87:106,]
+bc_mw <- minwage_df[223:235,]
+ont_mw <- minwage_df[470:482,]
+qbc_bc_ont_mw <- rbind(qbc_mw,bc_mw,ont_mw)
+
+# Plot the Historical Minimum Wage Levels of Each Province
+
+ggplot(qbc_bc_ont_mw,aes(Effective.Date,Minimum.Wage,color=factor(Jurisdiction)))+
+  geom_step(aes(Effective.Date,Minimum.Wage))+
+  labs(x="Year",y="Minimum Wage",title="Minimum Wage by Province",colour="Provinces")+
+  theme_minimal()+  
+  theme(plot.title = element_text(hjust = 0.5), legend.position="right")
+
+# Plot Labour Force in Canada by Province
+
+ggplot(lf_df)+ 
+  geom_point(aes(Year, qbc.lf.15andover, colour="Quebec"))+
+  geom_point(aes(Year, ont.lf.15andover, colour="Ontario"))+
+  geom_point(aes(Year, bc.lf.15andover, colour="British Columbia"))+
+  labs(x="Year",y="Labour Force",title="Labour Force (15 Years and Over)",colour="Provinces")+
+  theme_minimal()+
+  theme(plot.title=element_text(hjust=0.5), legend.position="right")
+
+# Plot LIM and LICO in Canada by Province
+
+ggplot(lowinc_df,aes(Year, cdn.lf.15andover))+
+  geom_point(aes(Year, qbc.all.lim, colour="Quebec"))+
+  geom_point(aes(Year, ont.all.lim, colour="Ontario"))+
+  geom_point(aes(Year, bc.all.lim, colour="British Columbia"))+
+  labs(x="Year",y="Low Income (%)",title="LIM (15 Years and Over)",colour="Provinces")+
+  theme_minimal()+
+  theme(plot.title=element_text(hjust=0.5), legend.position="right")
+
+# Combine the Labour Force and Low Income Data Sets
+
+data <-as.data.frame(c(lowinc_df, lf_df[-nrow(lf_df),]))
+
+# Create Columns with the Annual Minimum Wage Breakdown in each Province
+
+ont.mw <- c(6.85,6.85,6.85,6.85,7.15,7.45,7.75,8.00,8.75,9.50,10.25,
+          # 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,
+            10.25,10.25,10.25,11.00,11.00,11.25,11.40,11.60,11.60)
+          # 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019 
+qbc.mw <- c(6.90,7.00,7.20,7.30,7.45,7.60,7.75,8.00,8.50,8.50,9.50,
+          # 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,
+            9.65,9.90,10.15,10.35,10.55,10.75,11.25,12.00,12.50)
+          # 2011,2012,2013, 2014, 2015, 2016, 2017, 2018, 2019 
+bc.mw <- c(7.15,7.60,8.00,8.00,8.00,8.00,8.00,8.00,8.00,8.00,8.00,
+         # 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,
+          8.75,9.50,10.25,10.25,10.45,10.85,11.35,12.65,13.85)
+        # 2011,2012,2013, 2014, 2015, 2016, 2017, 2018, 2019 
+
+# Add New Columns to Data, Data Frame
+
+alldata<-cbind(data,ont.mw,qbc.mw,bc.mw)
+
+
+#    ------   MODELS   ------   #
+
+
+# Ontario Model
+
+y.ont.all.lim=alldata$ont.all.lim
+y.ont.all.lico.at=alldata$ont.all.lico.aftertax
+y.ont.all.lico.bt=alldata$ont.all.lico.beforetax
+xdata=alldata[,63:145]
+
+ont_linear_reg = lm(y.ont.all.lim~xdata)
+
+# Quebec Model
+
+y.qbc.all.lim=alldata$qbc.all.lim
+y.qbc.all.lico.at=alldata$qbc.all.lico.aftertax
+y.qbc.all.lico.bt=alldata$qbc.all.lico.beforetax
+xdata=alldata[,62:145]
+
+qbc_linear_reg = lm(y.qbc.all.lim~xdata)
+
+# British Columbia Model
+
+y.bc.all.lim=alldata$bc.all.lim
+y.bc.all.lico.at=alldata$bc.all.lico.aftertax
+y.bc.all.lico.bt=alldata$bc.all.lico.beforetax
+
+bc_linear_reg = lm(y.bc.all.lim~xdata)
+
+
