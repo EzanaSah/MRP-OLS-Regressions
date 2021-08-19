@@ -78,12 +78,12 @@ lf_df$cdn.ftemploy.15andover <- as.double(sub(',', '',lf_df$cdn.ftemploy.15andov
 lf_df$cdn.ftemploy.15to24 <- as.double(sub(',', '',lf_df$cdn.ftemploy.15to24))
 lf_df$cdn.ftemploy.25to54 <- as.double(sub(',', '',lf_df$cdn.ftemploy.25to54))
 lf_df$cdn.ftemploy.55andover <- as.double(sub(',', '',lf_df$cdn.ftemploy.55andover))
- 
+
 lf_df$cdn.ptemploy.15andover <- as.double(sub(',', '',lf_df$cdn.ptemploy.15andover))
 lf_df$cdn.ptemploy.15to24 <- as.double(sub(',', '',lf_df$cdn.ptemploy.15to24))
 lf_df$cdn.ptemploy.25to54 <- as.double(sub(',', '',lf_df$cdn.ptemploy.25to54))
 lf_df$cdn.ptemploy.55andover <- as.double(sub(',', '',lf_df$cdn.ptemploy.55andover))
- 
+
 lf_df$qbc.lf.15andover <- as.double(sub(',', '',lf_df$qbc.lf.15andover))
 lf_df$qbc.lf.25to54 <- as.double(sub(',', '',lf_df$qbc.lf.25to54))
 lf_df$qbc.employ.15andover <- as.double(sub(',', '',lf_df$qbc.employ.15andover))
@@ -128,25 +128,34 @@ minwage_df$Minimum.Wage <- as.double(sub('.', '', minwage_df$Minimum.Wage))
 qbc_mw <- minwage_df[87:128,]
 bc_mw <- minwage_df[223:245,]
 ont_mw <- minwage_df[470:498,]
+
+# Add Missing Current Minimum Wage evels
+
+# curr_qbc_mw <- cbind(as.Date("2021-05-01", format="%Y-%M-%D"),"Quebec",as.numeric(13.50))
+# curr_ont_mw <- cbind(as.Date("2020-10-01", format="%Y-%M-%D"),"Ontario",as.numeric(14.25))
+# 
+# colnames(curr_qbc_mw) <- c("Effective.Date","Jurisdiction","Minimum.Wage")
+# colnames(curr_ont_mw) <- c("Effective.Date","Jurisdiction","Minimum.Wage")  
+
 qbc_bc_ont_mw <- rbind(qbc_mw,bc_mw,ont_mw)
 
 # Plot the Historical Minimum Wage Levels of Each Province
 
 ggplot(qbc_bc_ont_mw,aes(Effective.Date,Minimum.Wage,color=factor(Jurisdiction)))+
   geom_step(aes(Effective.Date,Minimum.Wage))+
-  labs(x="Year",y="Minimum Wage (Canadian Dollars)",title="Minimum Wage by Province",colour="Provinces")+
+  labs(x="Year",y="Minimum Wage (Canadian $)",title="Figure 1: Minimum Wage by Province",colour="Provinces")+
   theme_minimal()+  
-  theme(plot.title = element_text(hjust = 0.5), legend.position="right")
+  theme(text=element_text(size=12),plot.title = element_text(hjust = 0.5),legend.position="right")
 
-# Plot Labour Force in Canada by Province
+# Plot Labour Force in Canada by Province for all ages
 
 ggplot(lf_df)+ 
   geom_line(aes(Year, qbc.lf.15andover, colour="Quebec"))+
   geom_line(aes(Year, ont.lf.15andover, colour="Ontario"))+
   geom_line(aes(Year, bc.lf.15andover, colour="British Columbia"))+
-  labs(x="Year",y="Labour Force",title="Labour Force (15 Years and Over)",colour="Provinces")+
+  labs(x="Year",y="Labour Force (in thousands)",title="Figure 2: Labour Force (15 Years and Over)",colour="Provinces")+
   theme_minimal()+
-  theme(plot.title=element_text(hjust=0.5), legend.position="right")
+  theme(text=element_text(size=12),plot.title=element_text(hjust=0.5), legend.position="right")
 
 # Plot LIM and LICO in Canada by Province for Individuals 15 and over 
 
@@ -154,20 +163,20 @@ ggplot(lowinc_df)+
   geom_line(aes(Year, qbc.all.lim, colour="Quebec"))+
   geom_line(aes(Year, ont.all.lim, colour="Ontario"))+
   geom_line(aes(Year, bc.all.lim, colour="British Columbia"))+
-  labs(x="Year",y="Low Income (%)",title="LIM (15 Years and Over)",colour="Provinces")+
+  labs(x="Year",y="Low Income (%)",title="Figure 3: After-Tax LIM (15 Years and Over)",colour="Provinces")+
   theme_minimal()+
-  theme(plot.title=element_text(hjust=0.5), legend.position="right")
+  theme(text=element_text(size=12),plot.title=element_text(hjust=0.5), legend.position="right")
 
 ggplot(lowinc_df)+
-  geom_line(aes(Year, qbc.all.lico.beforetax, colour="Quebec"))+
-  geom_line(aes(Year, ont.all.lico.beforetax, colour="Ontario"))+
-  geom_line(aes(Year, bc.all.lico.beforetax, colour="British Columbia"))+
-  labs(x="Year",y="Low Income (%)",title="LICO (15 Years and Over)",colour="Provinces")+
+  geom_line(aes(Year, qbc.all.lico.aftertax, colour="Quebec"))+
+  geom_line(aes(Year, ont.all.lico.aftertax, colour="Ontario"))+
+  geom_line(aes(Year, bc.all.lico.aftertax, colour="British Columbia"))+
+  labs(x="Year",y="Low Income (%)",title="Figure 4: After-Tax LICO (15 Years and Over)",colour="Provinces")+
   theme_minimal()+
-  theme(plot.title=element_text(hjust=0.5), legend.position="right")                                                                                                                                             
+  theme(text=element_text(size=12),plot.title=element_text(hjust=0.5), legend.position="right")
 
 
-# Combine the Labour Force and Low Income Data Sets
+# Combine the Labor Force and Low Income Data Sets
 
 data <-as.data.frame(c(lowinc_df, lf_df[-nrow(lf_df),]))
 data$Year <- as.double(sub(',','',data$Year))
@@ -188,23 +197,25 @@ min_wage_avgfct <- function(prov_mw){
     prev_mw = as.numeric(prov_mw[match(year,mwyears)+1,3]) 
     future_mw = loop[count-1] # since the list we are looping through is in reverse order 
     month = as.numeric(substr(prov_mw[match(year,mwyears),1],6,7))
-    print(month)
-    print(year)
-    print(loop)
-    # for the first iteration of the loop only 
+    # for the first iteration of the loop only (i.e. 2019)
     if(count == 1){loop[count] = prov_mw[count,3]}
-    # populate values that in the data set and start at the beginning of the year i.e. January 1st 
-    else if(!is.na(match(year,mwyears)) && month == 1){loop[count] = prov_mw[count,3]}
+    # populate values that are in the data set and start at the beginning of the year (i.e. January 1st) 
+    else if(!is.na(match(year,mwyears)) && month == 1){loop[count] = prov_mw[match(year,mwyears),3]}
     # populate values that are in the inputted data set
     else if(!is.na(match(year,mwyears))){loop[count] = curr_mw * ((12-month)/12) + prev_mw * (month/12)}
     # populate values that are not in the inputted data set
-    else if(is.na(match(year,mwyears))){loop[count] = future_mw}
+    else if(is.na(match(year,mwyears))){loop[count] = future_mw} 
+    #print(count)
+    #print(month)
+    #print(year)
+    #print(loop)
   }
 return(loop)
 }
 ont.mw.avg = min_wage_avgfct(ont_mw)
 qbc.mw.avg = min_wage_avgfct(qbc_mw)
 bc.mw.avg = min_wage_avgfct(bc_mw)
+
 
 
 # Add New Columns to Data, Data Frame
@@ -224,35 +235,35 @@ beta <- cbind(1, Year, ont.lf.15andover, ont.lf.15to24, ont.lf.25to54, ont.lf.55
 
 # All Ontario
 
-ont_lim_all_lin_reg = lm(ont.all.lim ~ 0 + ont.mw.avg + beta)                 # Low Income Measure
-ont_licobt_all_lin_reg = lm(ont.all.lico.beforetax ~ 0 + ont.mw.avg + beta)   # Low Income Cut Off Before Tax
-ont_licoat_all_lin_reg = lm(ont.all.lico.aftertax ~ 0 + ont.mw.avg + beta)    # Low Income Cut Off After Tax
+ont_lim_all_lin_reg = lm(log(ont.all.lim) ~ 0 + log(ont.mw.avg) + beta)                 # Low Income Measure
+ont_licobt_all_lin_reg = lm(log(ont.all.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta)   # Low Income Cut Off Before Tax
+ont_licoat_all_lin_reg = lm(log(ont.all.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta)    # Low Income Cut Off After Tax
 
 alphas = coef(ont_lim_all_lin_reg)[2]
 
 # Males in Poverty in Ontario
 
-ont_lim_male_lin_reg = lm(ont.male.lim ~ 0 + ont.mw.avg + beta) 
-ont_licobt_male_lin_reg = lm(ont.male.lico.beforetax ~ 0 + ont.mw.avg + beta) 
-ont_licoat_male_lin_reg = lm(ont.male.lico.aftertax ~ 0 + ont.mw.avg + beta) 
+ont_lim_male_lin_reg = lm(log(ont.male.lim) ~ 0 + log(ont.mw.avg) + beta) 
+ont_licobt_male_lin_reg = lm(log(ont.male.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta) 
+ont_licoat_male_lin_reg = lm(log(ont.male.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta) 
 
 # Females in Poverty in Ontario
 
-ont_lim_fem_lin_reg = lm(ont.fem.lim ~ 0 + ont.mw.avg + beta) 
-ont_licobt_fem_lin_reg = lm(ont.fem.lico.beforetax ~ 0 + ont.mw.avg + beta)
-ont_licoat_fem_lin_reg = lm(ont.fem.lico.aftertax ~ 0 + ont.mw.avg + beta)
+ont_lim_fem_lin_reg = lm(log(ont.fem.lim) ~ 0 + log(ont.mw.avg) + beta) 
+ont_licobt_fem_lin_reg = lm(log(ont.fem.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta)
+ont_licoat_fem_lin_reg = lm(log(ont.fem.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta)
 
 # Families in Poverty in Ontario
 
-ont_lim_fam_lin_reg = lm(ont.fam.lim ~ 0 + ont.mw.avg + beta) 
-ont_licobt_fam_lin_reg = lm(ont.fam.lico.beforetax ~ 0 + ont.mw.avg + beta)
-ont_licoat_fam_lin_reg = lm(ont.fam.lico.aftertax ~ 0 + ont.mw.avg + beta)
+ont_lim_fam_lin_reg = lm(log(ont.fam.lim) ~ 0 + log(ont.mw.avg) + beta) 
+ont_licobt_fam_lin_reg = lm(log(ont.fam.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta)
+ont_licoat_fam_lin_reg = lm(log(ont.fam.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta)
 
 # Single Individuals in Poverty in Ontario
 
-ont_lim_single_lin_reg = lm(ont.single.lim ~ 0 + ont.mw.avg + beta)
-ont_licobt_single_lin_reg = lm(ont.single.lico.beforetax ~ 0 + ont.mw.avg + beta)
-ont_licoat_single_lin_reg = lm(ont.single.lico.aftertax ~ 0 + ont.mw.avg + beta)
+ont_lim_single_lin_reg = lm(log(ont.single.lim) ~ 0 + log(ont.mw.avg) + beta)
+ont_licobt_single_lin_reg = lm(log(ont.single.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta)
+ont_licoat_single_lin_reg = lm(log(ont.single.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta)
 
 
 # Comparing the Fitted Values for Ontario Minimum Wage across the various Poverty Measures 
