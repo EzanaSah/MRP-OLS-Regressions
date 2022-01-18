@@ -2,8 +2,11 @@
 
 rm(list=ls())
 
+library(stargazer)
+library(tidyverse)
 library(ggplot2)
-library(sandwich)
+library(lmtest)
+library(plm)
 
 # Import Data Set for Low Income (LICO and LIM), 
 
@@ -111,7 +114,6 @@ lf_df$bc.employ.25to54 <- as.double(sub(',', '',lf_df$bc.employ.25to54))
 lf_df$bc.ftemploy.15andover <- as.double(sub(',', '',lf_df$bc.ftemploy.15andover))
 lf_df$bc.ftemploy.25to54 <- as.double(sub(',', '',lf_df$bc.ftemploy.25to54))
 
-
 # Import Data Set for Provincial Minimum Wages
 
 minwage <- read.table(file="minimumwage.csv", header=TRUE, sep=',')
@@ -128,50 +130,41 @@ minwage_df$Minimum.Wage <- as.double(sub('.', '', minwage_df$Minimum.Wage))
 qbc_mw <- minwage_df[87:128,]
 bc_mw <- minwage_df[223:245,]
 ont_mw <- minwage_df[470:498,]
-
-# Add Missing Current Minimum Wage evels
-
-# curr_qbc_mw <- cbind(as.Date("2021-05-01", format="%Y-%M-%D"),"Quebec",as.numeric(13.50))
-# curr_ont_mw <- cbind(as.Date("2020-10-01", format="%Y-%M-%D"),"Ontario",as.numeric(14.25))
-# 
-# colnames(curr_qbc_mw) <- c("Effective.Date","Jurisdiction","Minimum.Wage")
-# colnames(curr_ont_mw) <- c("Effective.Date","Jurisdiction","Minimum.Wage")  
-
 qbc_bc_ont_mw <- rbind(qbc_mw,bc_mw,ont_mw)
 
 # Plot the Historical Minimum Wage Levels of Each Province
 
-ggplot(qbc_bc_ont_mw,aes(Effective.Date,Minimum.Wage,color=factor(Jurisdiction)))+
-  geom_step(aes(Effective.Date,Minimum.Wage))+
-  labs(x="Year",y="Minimum Wage (Canadian $)",title="Figure 1: Minimum Wage by Province",colour="Provinces")+
+ggplot(qbc_bc_ont_mw,aes(Effective.Date,Minimum.Wage,colour=Jurisdiction,linetype=Jurisdiction))+
+  geom_step(aes(Effective.Date,Minimum.Wage),size=1.2)+
+  labs(x="Year",y="Minimum Wage (Canadian $)",title="Figure 1: Minimum Wage by Province")+
   theme_minimal()+  
-  theme(text=element_text(size=12),plot.title = element_text(hjust = 0.5),legend.position="right")
+  theme(text=element_text(size=20),plot.title = element_text(hjust = 0.5),legend.position="right")
 
 # Plot Labour Force in Canada by Province for all ages
 
-ggplot(lf_df)+ 
-  geom_line(aes(Year, qbc.lf.15andover, colour="Quebec"))+
-  geom_line(aes(Year, ont.lf.15andover, colour="Ontario"))+
-  geom_line(aes(Year, bc.lf.15andover, colour="British Columbia"))+
-  labs(x="Year",y="Labour Force (in thousands)",title="Figure 2: Labour Force (15 Years and Over)",colour="Provinces")+
+ggplot((lf_df),colour=c("Quebec"="blue", "Ontario"="green","British Columbia"="red"),linetype=c("Quebec"=1, "Ontario"=3,"British Columbia"=5))+ 
+  geom_line(aes(Year, qbc.lf.15andover, colour="Quebec",linetype="Quebec"),size=1.2)+
+  geom_line(aes(Year, ont.lf.15andover, colour="Ontario",linetype="Ontario"),size=1.2)+
+  geom_line(aes(Year, bc.lf.15andover, colour="British Columbia",linetype="British Columbia"),size=1.2)+
+  labs(x="Year",y="Labour Force (in thousands)",title="Figure 2: Labour Force (15 Years and Over)",linetype="Province",colour="Province")+
   theme_minimal()+
   theme(text=element_text(size=12),plot.title=element_text(hjust=0.5), legend.position="right")
 
 # Plot LIM and LICO in Canada by Province for Individuals 15 and over 
 
-ggplot(lowinc_df)+
-  geom_line(aes(Year, qbc.all.lim, colour="Quebec"))+
-  geom_line(aes(Year, ont.all.lim, colour="Ontario"))+
-  geom_line(aes(Year, bc.all.lim, colour="British Columbia"))+
-  labs(x="Year",y="Low Income (%)",title="Figure 3: After-Tax LIM (15 Years and Over)",colour="Provinces")+
+ggplot((lowinc_df),colour=c("Quebec"="blue", "Ontario"="green","British Columbia"="red"),linetype=c("Quebec"=1, "Ontario"=3,"British Columbia"=5))+ 
+  geom_line(aes(Year, qbc.all.lim, colour="Quebec",linetype="Quebec"),size=1.2)+
+  geom_line(aes(Year, ont.all.lim, colour="Ontario",linetype="Ontario"),size=1.2)+
+  geom_line(aes(Year, bc.all.lim, colour="British Columbia",linetype="British Columbia"),size=1.2)+
+  labs(x="Year",y="Low Income (%)",title="Figure 3: After-Tax LIM (15 Years and Over)",linetype="Province",colour="Province")+
   theme_minimal()+
   theme(text=element_text(size=12),plot.title=element_text(hjust=0.5), legend.position="right")
 
-ggplot(lowinc_df)+
-  geom_line(aes(Year, qbc.all.lico.aftertax, colour="Quebec"))+
-  geom_line(aes(Year, ont.all.lico.aftertax, colour="Ontario"))+
-  geom_line(aes(Year, bc.all.lico.aftertax, colour="British Columbia"))+
-  labs(x="Year",y="Low Income (%)",title="Figure 4: After-Tax LICO (15 Years and Over)",colour="Provinces")+
+ggplot((lowinc_df),colour=c("Quebec"="blue", "Ontario"="green","British Columbia"="red"),linetype=c("Quebec"=1, "Ontario"=3,"British Columbia"=5))+ 
+  geom_line(aes(Year, qbc.all.lico.aftertax, colour="Quebec",linetype="Quebec"),size=1.2)+
+  geom_line(aes(Year, ont.all.lico.aftertax, colour="Ontario",linetype="Ontario"),size=1.2)+
+  geom_line(aes(Year, bc.all.lico.aftertax, colour="British Columbia",linetype="British Columbia"),size=1.2)+
+  labs(x="Year",y="Low Income (%)",title="Figure 4: After-Tax LICO (15 Years and Over)",linetype="Province",colour="Province")+
   theme_minimal()+
   theme(text=element_text(size=12),plot.title=element_text(hjust=0.5), legend.position="right")
 
@@ -184,7 +177,6 @@ data$Year <- as.double(sub(',','',data$Year))
 # Create Columns with the Annual Minimum Wage Breakdown in each Province
 # Transition Years are weighted averages based on the effective date of the minimum wage increase
 # e.g. Increase from 6.85 to 7.15 in February 1 2004 = ((1/12)*6.85) + ((11/12)*7.15) = 7.125
-
 
 min_wage_avgfct <- function(prov_mw){
   years = as.character(rev(seq(from = 1976,to = 2019,by = 1)))
@@ -205,99 +197,233 @@ min_wage_avgfct <- function(prov_mw){
     else if(!is.na(match(year,mwyears))){loop[count] = curr_mw * ((12-month)/12) + prev_mw * (month/12)}
     # populate values that are not in the inputted data set
     else if(is.na(match(year,mwyears))){loop[count] = future_mw} 
-    #print(count)
-    #print(month)
-    #print(year)
-    #print(loop)
   }
 return(loop)
 }
-ont.mw.avg = min_wage_avgfct(ont_mw)
-qbc.mw.avg = min_wage_avgfct(qbc_mw)
-bc.mw.avg = min_wage_avgfct(bc_mw)
 
+# Turn Averages into data frames and add Jurisdiction Column 
+
+ont_mw_avg = as.data.frame(min_wage_avgfct(ont_mw))
+ont_mw_avg$Jurisdiction = c(rep('Ontario',nrow(ont_mw_avg)))
+ont_mw_avg = ont_mw_avg[,c(2,1)]
+colnames(ont_mw_avg) = c("Jurisdiction", "ont_mw")
+
+qbc_mw_avg = as.data.frame(min_wage_avgfct(qbc_mw))
+qbc_mw_avg$Jurisdiction = c(rep('Quebec', nrow(qbc_mw_avg)))
+qbc_mw_avg =qbc_mw_avg[,c(2,1)]
+colnames(qbc_mw_avg) = c("Jurisdiction", "qbc_mw")
+
+bc_mw_avg = as.data.frame(min_wage_avgfct(bc_mw))
+bc_mw_avg$Jurisdiction = c(rep('British Columbia',nrow(bc_mw_avg)))
+bc_mw_avg = bc_mw_avg[,c(2,1)]
+colnames(bc_mw_avg) = c("Jurisdiction", "bc_mw")
 
 
 # Add New Columns to Data, Data Frame
 
-alldata<-cbind(data,ont.mw.avg,qbc.mw.avg,bc.mw.avg)
+alldata<-cbind(data,ont_mw_avg,qbc_mw_avg,bc_mw_avg)
 attach(alldata)
 
-#    ------   LINEAR MODELS USING THE lm() FUNCTION  ------   #
+# Create Panel for Quebec 
 
-# Ontario Model <- POVRATE = alpha(MINWAGE) + beta(CONTROL VARS) + Residuals
+quebec = select(alldata,17:31,83:102)
+colnames(quebec) = c("all.lim","all.lico.aftertax","all.lico.beforetax",
+                     "male.lim","male.lico.aftertax","male.lico.beforetax",
+                     "fem.lim","fem.lico.aftertax","fem.lico.beforetax",
+                     "fam.lim","fam.lico.aftertax","fam.lico.beforetax",
+                     "single.lim","single.lico.aftertax","single.lico.beforetax",
+                     "lf.15andover","lf.15to24","lf.25to54","lf.55andover",
+                     "employ.15andover","employ.15to24", "employ.25to54", "employ.55andover",
+                     "ftemploy.15andover","ftemploy.15to24", "ftemploy.25to54", "ftemploy.55andover",
+                     "ptemploy.15andover", "ptemploy.15to24", "ptemploy.25to54", "ptemploy.55andover",
+                     "unemploy.15andover", "unemploy.15to24","umemploy.25to54","unemploy55andover")
+quebec$year = seq(from=1976,to=2019,by=1)
+quebec$jurisdiction = rep("QC",each=44)
+quebec$minwage = rev(qbc_mw_avg$qbc_mw)
+quebec = quebec[,c(36,37,38,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
+                   21,22,23,24,25,26,27,28,29,30,31,32,33,34,35)]
 
-beta <- cbind(1, Year, ont.lf.15andover, ont.lf.15to24, ont.lf.25to54, ont.lf.55andover,
-              ont.employ.15andover,ont.employ.15to24, ont.employ.25to54, ont.employ.55andover,
-              ont.ftemploy.15andover,ont.ftemploy.15to24, ont.ftemploy.25to54, ont.ftemploy.55andover,
-              ont.ptemploy.15andover, ont.ptemploy.15to24, ont.ptemploy.25to54, ont.ptemploy.55andover,
-              ont.unemploy.15andover, ont.unemploy.15to24, ont.umemploy.25to54, ont.unemploy55andover)
+# Create Panel for Ontario
 
-# All Ontario
+ontario = select(alldata,32:46,103:122)
+colnames(ontario) = c("all.lim","all.lico.aftertax","all.lico.beforetax",
+                     "male.lim","male.lico.aftertax","male.lico.beforetax",
+                     "fem.lim","fem.lico.aftertax","fem.lico.beforetax",
+                     "fam.lim","fam.lico.aftertax","fam.lico.beforetax",
+                     "single.lim","single.lico.aftertax","single.lico.beforetax",
+                     "lf.15andover","lf.15to24","lf.25to54","lf.55andover",
+                     "employ.15andover","employ.15to24", "employ.25to54", "employ.55andover",
+                     "ftemploy.15andover","ftemploy.15to24", "ftemploy.25to54", "ftemploy.55andover",
+                     "ptemploy.15andover", "ptemploy.15to24", "ptemploy.25to54", "ptemploy.55andover",
+                     "unemploy.15andover", "unemploy.15to24","umemploy.25to54","unemploy55andover")
+ontario$year = seq(from=1976,to=2019,by=1)
+ontario$jurisdiction = rep("ON",each=44)
+ontario$minwage = rev(ont_mw_avg$ont_mw)
+ontario = ontario[,c(36,37,38,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
+                     21,22,23,24,25,26,27,28,29,30,31,32,33,34,35)]
 
-ont_lim_all_lin_reg = lm(log(ont.all.lim) ~ 0 + log(ont.mw.avg) + beta)                 # Low Income Measure
-ont_licobt_all_lin_reg = lm(log(ont.all.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta)   # Low Income Cut Off Before Tax
-ont_licoat_all_lin_reg = lm(log(ont.all.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta)    # Low Income Cut Off After Tax
+# Create Panel for British Columbia 
 
-alphas = coef(ont_lim_all_lin_reg)[2]
+britishcolumbia = select(alldata,47:61,123:142)
+colnames(britishcolumbia) = c("all.lim","all.lico.aftertax","all.lico.beforetax",
+                              "male.lim","male.lico.aftertax","male.lico.beforetax",
+                              "fem.lim","fem.lico.aftertax","fem.lico.beforetax",
+                              "fam.lim","fam.lico.aftertax","fam.lico.beforetax",
+                              "single.lim","single.lico.aftertax","single.lico.beforetax",                     
+                              "lf.15andover","lf.15to24","lf.25to54","lf.55andover",
+                              "employ.15andover","employ.15to24", "employ.25to54", "employ.55andover",
+                              "ftemploy.15andover","ftemploy.15to24", "ftemploy.25to54", "ftemploy.55andover",
+                              "ptemploy.15andover", "ptemploy.15to24", "ptemploy.25to54", "ptemploy.55andover",
+                              "unemploy.15andover", "unemploy.15to24","umemploy.25to54","unemploy55andover")
+britishcolumbia$year = seq(from=1976,to=2019,by=1)
+britishcolumbia$jurisdiction = rep("BC",each=44)
+britishcolumbia$minwage = rev(bc_mw_avg$bc_mw)
+britishcolumbia = britishcolumbia[,c(36,37,38,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
+                                     21,22,23,24,25,26,27,28,29,30,31,32,33,34,35)]
 
-# Males in Poverty in Ontario
+detach(alldata)
 
-ont_lim_male_lin_reg = lm(log(ont.male.lim) ~ 0 + log(ont.mw.avg) + beta) 
-ont_licobt_male_lin_reg = lm(log(ont.male.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta) 
-ont_licoat_male_lin_reg = lm(log(ont.male.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta) 
+# Combine the three panels into a Panel Data Set 
 
-# Females in Poverty in Ontario
-
-ont_lim_fem_lin_reg = lm(log(ont.fem.lim) ~ 0 + log(ont.mw.avg) + beta) 
-ont_licobt_fem_lin_reg = lm(log(ont.fem.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta)
-ont_licoat_fem_lin_reg = lm(log(ont.fem.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta)
-
-# Families in Poverty in Ontario
-
-ont_lim_fam_lin_reg = lm(log(ont.fam.lim) ~ 0 + log(ont.mw.avg) + beta) 
-ont_licobt_fam_lin_reg = lm(log(ont.fam.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta)
-ont_licoat_fam_lin_reg = lm(log(ont.fam.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta)
-
-# Single Individuals in Poverty in Ontario
-
-ont_lim_single_lin_reg = lm(log(ont.single.lim) ~ 0 + log(ont.mw.avg) + beta)
-ont_licobt_single_lin_reg = lm(log(ont.single.lico.beforetax) ~ 0 + log(ont.mw.avg) + beta)
-ont_licoat_single_lin_reg = lm(log(ont.single.lico.aftertax) ~ 0 + log(ont.mw.avg) + beta)
-
-
-# Comparing the Fitted Values for Ontario Minimum Wage across the various Poverty Measures 
-
-ont_lim_a = as.double(coef(ont_lim_all_lin_reg)[2])
-ont_licobt_a = as.double(coef(ont_licobt_all_lin_reg)[2])
-ont_licoat_a = as.double(coef(ont_licoat_all_lin_reg)[2])
-
-ont_lim_male = as.double(coef(ont_lim_all_lin_reg)[2])
-ont_licobt_male = as.double(coef(ont_lim_all_lin_reg)[2])
-ont_licoat_male = as.double(coef(ont_lim_all_lin_reg)[2])
-
-ont_lim_fem = as.double(coef(ont_lim_all_lin_reg)[2])
-ont_licobt_fem = as.double(coef(ont_licobt_fem_lin_reg)[2])
-ont_licoat_fem = as.double(coef(ont_licoat_fem_lin_reg)[2])
-
-ont_lim_fam = as.double(coef(ont_lim_fam_lin_reg)[2])
-ont_licobt_fam = as.double(coef(ont_licobt_fam_lin_reg)[2])
-ont_licoat_fam = as.double(coef(ont_licoat_fam_lin_reg)[2])
-
-ont_lim_single = as.double(coef(ont_lim_single_lin_reg)[2])
-ont_licobt_single = as.double(coef(ont_licobt_single_lin_reg)[2])
-ont_licoat_single = as.double(coef(ont_licoat_single_lin_reg)[2])
+panel = bind_rows(quebec, ontario, britishcolumbia)
+panel = pdata.frame(panel,index=c("jurisdiction", "year"))
 
 
-alphas = rbind(ont_lim_a,ont_licoat_a,ont_licobt_a,
-               ont_lim_male,ont_licoat_male,ont_licobt_male,
-               ont_lim_fem,ont_licoat_fem,ont_licobt_fem,
-               ont_lim_fam,ont_licoat_fam,ont_licobt_fam,
-               ont_lim_single,ont_licoat_single,ont_licobt_single)
+attach(panel)
 
-colnames(alphas) = c("Min Wage Coefficients")
+# Run fixed effects model 
 
-# --------      LINEAR MODEL USING THE SANDWICH PACKAGE      ----------------
+ctrl_vars = cbind(lf.15andover, unemploy.15andover)
 
-HC_ont_lim_all_lin_reg = sqrt(diag(vcovHC(ont_lim_all_lin_reg,type="HC0")))
 
+# Fixed Effects Model with All LIM (after-tax)
+
+panel_fe_all_lim_lm = lm(all.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_all_lim_lm_se = coeftest(panel_fe_all_lim_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_all_lim_plm = plm(all.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_all_lim_plm_se = coeftest(panel_fe_all_lim_plm, vcov.= vcovHC, type = "HC1")
+
+
+# Fixed Effects Model with All LICO (after-tax)
+
+panel_fe_all_licoat_lm = lm(all.lico.aftertax ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_all_licoat_lm_se = coeftest(panel_fe_all_licoat_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_all_licoat_plm = plm(all.lico.aftertax ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_all_licoat_plm_se = coeftest(panel_fe_all_licoat_plm, vcov.= vcovHC, type = "HC1")
+
+
+# Fixed Effects Model with Male LIM (after-tax)
+
+panel_fe_male_lim_lm = lm(male.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_male_lim_lm_se = coeftest(panel_fe_male_lim_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_male_lim_plm = plm(male.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_male_lim_plm_se = coeftest(panel_fe_male_lim_plm, vcov.= vcovHC, type = "HC1")
+
+# Fixed Effects Model with Male LICO (after-tax)
+
+panel_fe_male_licoat_lm = lm(male.lico.aftertax ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_male_licoat_lm_se = coeftest(panel_fe_male_licoat_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_male_licoat_plm = plm(male.lico.aftertax ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_male_licoat_plm_se = coeftest(panel_fe_male_licoat_plm, vcov.= vcovHC, type = "HC1")
+
+
+# Fixed Effects Model with Female LIM (after-tax)
+
+panel_fe_fem_lim_lm = lm(fem.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_fem_lim_lm_se = coeftest(panel_fe_fem_lim_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_fem_lim_plm = plm(fem.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_fem_lim_plm_se = coeftest(panel_fe_fem_lim_plm, vcov.= vcovHC, type = "HC1")
+
+# Fixed Effects Model with Female LICO (after-tax)
+
+panel_fe_fem_licoat_lm = lm(fem.lico.aftertax ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_fem_licoat_lm_se = coeftest(panel_fe_fem_licoat_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_fem_licoat_plm = plm(fem.lico.aftertax ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_fem_licoat_plm_se = coeftest(panel_fe_fem_licoat_plm, vcov.= vcovHC, type = "HC1")
+
+
+# Fixed Effects Model with Family LIM (after-tax)
+
+panel_fe_fam_lim_lm = lm(fam.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_fam_lim_lm_se = coeftest(panel_fe_fam_lim_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_fam_lim_plm = plm(fam.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_fam_lim_plm_se = coeftest(panel_fe_fam_lim_plm, vcov.= vcovHC, type = "HC1")
+
+# Fixed Effects Model with Family LICO (after-tax)
+
+panel_fe_fam_licoat_lm = lm(fam.lico.aftertax ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_fam_licoat_lm_se = coeftest(panel_fe_fam_licoat_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_fam_licoat_plm = plm(fam.lico.aftertax ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_fam_licoat_plm_se = coeftest(panel_fe_fam_licoat_plm, vcov.= vcovHC, type = "HC1")
+
+
+# Fixed Effects Model with Single LIM (after-tax)
+
+panel_fe_single_lim_lm = lm(single.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_single_lim_lm_se = coeftest(panel_fe_single_lim_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_single_lim_plm = plm(single.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_single_lim_plm_se = coeftest(panel_fe_single_lim_plm, vcov.= vcovHC, type = "HC1")
+
+# Fixed Effects Model with Single LICO (after-tax)
+
+panel_fe_single_licoat_lm = lm(single.lico.aftertax ~ minwage + ctrl_vars + jurisdiction + year - 1, data=panel)
+panel_fe_single_licoat_lm_se = coeftest(panel_fe_single_licoat_lm, vcov.= vcovHC, type = "HC1")
+
+panel_fe_single_licoat_plm = plm(all.lim ~ minwage + ctrl_vars + jurisdiction + year - 1, data = panel, index = c("jurisdiction", "year"), model = "within", effect="twoways")
+panel_fe_single_licoat_plm_se = coeftest(panel_fe_single_licoat_plm, vcov.= vcovHC, type = "HC1")
+
+
+# CREATE A TABLE OF WITH THE LIM RESULTS OF THE PLM() FOR EACH POVERTY RATE 
+
+lim_standard_errs <- list(sqrt(diag(vcovHC(panel_fe_all_lim_plm, type="HC1"))),
+                      sqrt(diag(vcovHC(panel_fe_male_lim_plm, type="HC1"))),
+                      sqrt(diag(vcovHC(panel_fe_fem_lim_plm, type="HC1"))),
+                      sqrt(diag(vcovHC(panel_fe_fam_lim_plm, type="HC1"))),
+                      sqrt(diag(vcovHC(panel_fe_single_lim_plm, type="HC1"))))
+                      
+lim_results <- stargazer(panel_fe_all_lim_plm,
+                         panel_fe_male_lim_plm, 
+                         panel_fe_fem_lim_plm, 
+                         panel_fe_fam_lim_plm, 
+                         panel_fe_single_lim_plm,
+                         digits = 3,
+                         header = FALSE,
+                         type = "text",
+                         se = lim_standard_errs,
+                         title = "LIM Panel Regression Models Results",
+                         model.numbers = FALSE,
+                         column.labels = c("All", "Male", "Female", "Family", "Single"))
+
+
+# CREATE A TABLE OF WITH THE LICO RESULTS OF THE PLM() FOR EACH POVERTY RATE 
+
+lico_standard_errs <- list(sqrt(diag(vcovHC(panel_fe_all_licoat_plm, type="HC1"))),
+                      sqrt(diag(vcovHC(panel_fe_male_licoat_plm, type="HC1"))),
+                      sqrt(diag(vcovHC(panel_fe_fem_licoat_plm, type="HC1"))),
+                      sqrt(diag(vcovHC(panel_fe_fam_licoat_plm, type="HC1"))),
+                      sqrt(diag(vcovHC(panel_fe_single_licoat_plm, type="HC1"))))
+
+
+lico_results <- stargazer(panel_fe_all_licoat_plm,
+                          panel_fe_male_licoat_plm,
+                          panel_fe_fem_licoat_plm,
+                          panel_fe_fam_licoat_plm,
+                          panel_fe_single_licoat_plm,
+                          digits = 3,
+                          header = FALSE,
+                          type = "text",
+                          se = lico_standard_errs,
+                          title = "LICO Panel Regression Models Results",
+                          model.numbers = FALSE,
+                          column.labels = c("All", "Male", "Female", "Family", "Single"))
+
+                      
